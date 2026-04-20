@@ -1,47 +1,46 @@
 use std::fmt::Debug;
-use ahash::AHashMap;
+use ahash::AHashSet;
 
-use crate::common::SlackChannel;
-
+use crate::common::Credential;
 
 #[derive(Clone)]
 pub struct SlackClient {
-   slack_channels: AHashMap<String, SlackChannel> 
+    workspace_name: String, 
+    channels: AHashSet<String>,
+    api_key: Credential,
 }
 
 impl Debug for SlackClient {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(stringify!(SlackClient))
-            .field("slack_channels", &self.slack_channels)
+        f.debug_struct(stringify!(SlackChannel))
+            .field("workspace_name", &self.workspace_name)
+            .field("channels", &self.channels)
+            .field("api_key", &self.api_key.api_key_masked())
             .finish()
     }
 }
 
 impl SlackClient {
     #[must_use]
-    pub fn new(channels: Vec<SlackChannel>) -> Self {
-        let mut map = AHashMap::new(); 
-        for channel in channels {
-            map.insert(channel.get_channel_id(), channel);
-        }
+    pub fn new(workspace_name: impl Into<String>, channels: AHashSet<String>, api_key: impl Into<String>) -> Self {
+        let workspace_name = workspace_name.into();
+
         Self {
-            slack_channels: map
+            workspace_name,
+            channels,
+            api_key: Credential::new(api_key),
         }
     }
 
-    pub fn add_channel(&mut self, channel: SlackChannel) {
-        self.slack_channels.insert(channel.get_channel_id(), channel);
+    pub fn add_channel(&mut self, channel: impl Into<String>) {
+        self.channels.insert(channel.into());
     }
     
     #[must_use]
     pub fn get_channel_names(&self) -> Vec<String> {
-        self.slack_channels.keys().cloned().collect()
+        self.channels.iter().cloned().collect()
     }
 
-    #[must_use]
-    pub fn get_channel(&self, channel_id: &str) -> Option<&SlackChannel> {
-        self.slack_channels.get(channel_id)
-    }
 }
 
 
@@ -53,36 +52,29 @@ mod tests {
     
     #[rstest]
     fn test_slack_client_new() {
-        let channel1 = SlackChannel::new("channel1", "api_key1");
-        let channel2 = SlackChannel::new("channel2", "api_key2");
-        let mut client = SlackClient::new(vec![channel1.clone(), channel2.clone()]);
-
-        assert_eq!(client.slack_channels.len(), 2);
-        assert_eq!(client.slack_channels.get("channel1").unwrap().api_key(), "api_key1");
-        assert_eq!(client.slack_channels.get("channel2").unwrap().api_key(), "api_key2");
+        let channels = AHashSet::from_iter(vec!["channel1".to_string(), "channel2".to_string()]);
+        let client = SlackClient::new("workspace", channels, "api_key");
+        assert_eq!(client.workspace_name, "workspace".to_string());
     }
 
     #[rstest]
     fn test_slack_client_add_channel() {
-        let channel1 = SlackChannel::new("channel1", "api_key1");
-        let mut client = SlackClient::new(vec![channel1.clone()]);
+        let mut client = SlackClient::new("workspace", AHashSet::new(), "api_key");
+        client.add_channel("channel1");
+        client.add_channel("channel2");
 
-        let channel2 = SlackChannel::new("channel2", "api_key2");
-        client.add_channel(channel2.clone());
-
-        assert_eq!(client.slack_channels.len(), 2);
-        assert_eq!(client.slack_channels.get("channel1").unwrap().api_key(), "api_key1");
-        assert_eq!(client.slack_channels.get("channel2").unwrap().api_key(), "api_key2");
+        let channel_names = client.get_channel_names();
+        assert_eq!(channel_names.len(), 2);
+        assert!(channel_names.contains(&"channel1".to_string()));
+        assert!(channel_names.contains(&"channel2".to_string()));
     }
 
     #[rstest]
     fn test_slack_client_get_channel_names() {
-        let channel1 = SlackChannel::new("channel1", "api_key1");
-        let channel2 = SlackChannel::new("channel2", "api_key2");
+        let channels = AHashSet::from_iter(vec!["channel1".to_string(), "channel2".to_string()]);
+        let client = SlackClient::new("workspace", channels, "api_key");
 
-        let client = SlackClient::new(vec![channel1.clone(), channel2.clone()]);
         let channel_names = client.get_channel_names();
-
         assert_eq!(channel_names.len(), 2);
         assert!(channel_names.contains(&"channel1".to_string()));
         assert!(channel_names.contains(&"channel2".to_string()));
@@ -90,15 +82,13 @@ mod tests {
 
     #[rstest]
     fn test_slack_client_get_channel() {
-        let channel1 = SlackChannel::new("channel1", "api_key1");
-        let channel2 = SlackChannel::new("channel2", "api_key2");
+        let channels = AHashSet::from_iter(vec!["channel1".to_string(), "channel2".to_string()]);
+        let client = SlackClient::new("workspace", channels, "api_key");
 
-        let client = SlackClient::new(vec![channel1.clone(), channel2.clone()]);
-        let retrieved_channel1 = client.get_channel("channel1").unwrap();
-        let retrieved_channel2 = client.get_channel("channel2").unwrap();
-
-        assert_eq!(retrieved_channel1.api_key(), "api_key1");
-        assert_eq!(retrieved_channel2.api_key(), "api_key2");
+        let channel_names = client.get_channel_names();
+        assert_eq!(channel_names.len(), 2);
+        assert!(channel_names.contains(&"channel1".to_string()));
+        assert!(channel_names.contains(&"channel2".to_string()));
     }
 }
 

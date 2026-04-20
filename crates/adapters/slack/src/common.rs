@@ -4,31 +4,26 @@ use nautilus_core::string::REDACTED;
 use zeroize::ZeroizeOnDrop;
 
 
-
 #[derive(Clone, ZeroizeOnDrop)]
-pub struct SlackChannel {
-    channel_id: String,
+pub struct Credential {
     api_key: Box<[u8]>,
 }
 
-impl Debug for SlackChannel {
+impl Debug for Credential {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(stringify!(SlackChannel))
-            .field("channel_id", &self.channel_id)
+        f.debug_struct(stringify!(Credential))
             .field("api_key", &REDACTED)
             .finish()
     }
 }
 
-impl SlackChannel {
+impl Credential {
     /// Creates a new [`Credential`] instance from the API key.
     #[must_use]
-    pub fn new(channel_id: impl Into<String>, api_key: impl Into<String>) -> Self {
-        let channel_id = channel_id.into();
+    pub fn new(api_key: impl Into<String>) -> Self {
         let api_key_bytes = api_key.into().into_bytes();
 
         Self {
-            channel_id,
             api_key: api_key_bytes.into_boxed_slice(),
         }
     }
@@ -52,15 +47,7 @@ impl SlackChannel {
     pub fn api_key_masked(&self) -> String {
         nautilus_core::string::mask_api_key(self.api_key())
     }
-    
-    /// Returns the channel_id
-    #[must_use]
-    pub fn get_channel_id(&self) -> String {
-        self.channel_id.clone()
-    }
 }
-
-
 
 #[cfg(test)]
 mod tests {
@@ -69,30 +56,22 @@ mod tests {
     use super::*;
 
     #[rstest]
-    fn test_slack_channel_api_key_masked_short() {
-        let credential = SlackChannel::new("test_channel", "short");
+    fn test_credential_api_key_masked_short() {
+        let credential = Credential::new("short");
         assert_eq!(credential.api_key_masked(), "*****");
     }
 
     #[rstest]
-    fn test_slack_channel_api_key_masked_long() {
-        let credential = SlackChannel::new("test_channel", "abcdefghijklmnop");
+    fn test_credential_api_key_masked_long() {
+        let credential = Credential::new("abcdefghijklmnop");
         assert_eq!(credential.api_key_masked(), "abcd...mnop");
     }
 
     #[rstest]
-    fn test_slack_channel_debug_redaction() {
-        let credential = SlackChannel::new("test_channel", "test_api_key");
+    fn test_credential_debug_redaction() {
+        let credential = Credential::new("test_api_key");
         let debug_str = format!("{credential:?}");
         assert!(debug_str.contains(REDACTED));
         assert!(!debug_str.contains("test_api_key"));
-    }
-
-    #[rstest]
-    fn test_slack_channel_channel_id() {
-        let credential = SlackChannel::new("test_channel", "test_api_key");
-        let debug_str = format!("{credential:?}");
-        assert!(debug_str.contains("test_channel"));
-        assert!(debug_str.contains("channel_id"));
     }
 }
