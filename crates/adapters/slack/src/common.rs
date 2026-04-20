@@ -49,6 +49,59 @@ impl Credential {
     }
 }
 
+
+#[derive(Clone)]
+pub struct SlackChannel {
+    channel_id: String,
+    credential: Credential,
+}
+
+impl Debug for SlackChannel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct(stringify!(SlackChannel))
+            .field("api_key", &REDACTED)
+            .finish()
+    }
+}
+
+impl SlackChannel {
+    /// Creates a new [`SlackChannel`] instance from the Channel ID and API key.
+    #[must_use]
+    pub fn new(channel_id: impl Into<String>, api_key: impl Into<String>) -> Self {
+        let channel_id = channel_id.into();
+        let credential = Credential::new(api_key); 
+
+        Self {
+            channel_id,
+            credential, 
+        }
+    }
+
+    /*
+    /// Returns the API key associated with this credential.
+    ///
+    /// # Panics
+    ///
+    /// This method should never panic as the API key is always valid UTF-8,
+    /// having been created from a String.
+    #[must_use]
+    pub fn api_key(&self) -> &str {
+        std::str::from_utf8(&self.api_key).expect("API key is valid UTF-8")
+    }
+
+    /// Returns a masked version of the API key for logging purposes.
+    ///
+    /// Shows first 4 and last 4 characters with ellipsis in between.
+    /// For keys shorter than 8 characters, shows asterisks only.
+    #[must_use]
+    pub fn api_key_masked(&self) -> String {
+        nautilus_core::string::mask_api_key(self.api_key())
+    }
+    */
+}
+
+
+
 #[cfg(test)]
 mod tests {
     use rstest::*;

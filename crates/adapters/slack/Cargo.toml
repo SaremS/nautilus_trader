@@ -34,10 +34,12 @@ nautilus-serialization = { workspace = true, features = [
   "arrow",
 ], optional = true }
 nautilus-system = { workspace = true, optional = true }
+reqwest.workspace = true
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true }
 tokio-util = { workspace = true }
+url = { workspace = true }
 zeroize = { workspace = true }
 
 [dev-dependencies]

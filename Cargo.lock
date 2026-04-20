@@ -6435,11 +6435,13 @@ dependencies = [
  "nautilus-serialization",
  "nautilus-system",
  "proptest",
+ "reqwest 0.13.2",
  "rstest",
  "serde",
  "serde_json",
  "tokio",
  "tokio-util",
+ "url",
  "zeroize",
 ]
 
