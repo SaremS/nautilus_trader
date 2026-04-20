@@ -4,6 +4,7 @@ use nautilus_core::string::REDACTED;
 use zeroize::ZeroizeOnDrop;
 
 
+
 #[derive(Clone, ZeroizeOnDrop)]
 pub struct SlackChannel {
     channel_id: String,
@@ -54,7 +55,7 @@ impl SlackChannel {
     
     /// Returns the channel_id
     #[must_use]
-    pub fn channel_id(&self) -> String {
+    pub fn get_channel_id(&self) -> String {
         self.channel_id.clone()
     }
 }

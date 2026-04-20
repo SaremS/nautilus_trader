@@ -28,6 +28,7 @@
 #![deny(rustdoc::broken_intra_doc_links)]
 
 pub mod common;
+pub mod client;
 
 #[cfg(feature = "python")]
 pub mod python;

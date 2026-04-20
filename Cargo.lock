@@ -6427,6 +6427,7 @@ dependencies = [
 name = "nautilus-slack"
 version = "0.56.0"
 dependencies = [
+ "ahash 0.8.12",
  "nautilus-common",
  "nautilus-core",
  "nautilus-live",
