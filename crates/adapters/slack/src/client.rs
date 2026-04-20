@@ -32,6 +32,16 @@ impl SlackClient {
     pub fn add_channel(&mut self, channel: SlackChannel) {
         self.slack_channels.insert(channel.get_channel_id(), channel);
     }
+    
+    #[must_use]
+    pub fn get_channel_names(&self) -> Vec<String> {
+        self.slack_channels.keys().cloned().collect()
+    }
+
+    #[must_use]
+    pub fn get_channel(&self, channel_id: &str) -> Option<&SlackChannel> {
+        self.slack_channels.get(channel_id)
+    }
 }
 
 
@@ -64,5 +74,32 @@ mod tests {
         assert_eq!(client.slack_channels.get("channel1").unwrap().api_key(), "api_key1");
         assert_eq!(client.slack_channels.get("channel2").unwrap().api_key(), "api_key2");
     }
+
+    #[rstest]
+    fn test_slack_client_get_channel_names() {
+        let channel1 = SlackChannel::new("channel1", "api_key1");
+        let channel2 = SlackChannel::new("channel2", "api_key2");
+
+        let client = SlackClient::new(vec![channel1.clone(), channel2.clone()]);
+        let channel_names = client.get_channel_names();
+
+        assert_eq!(channel_names.len(), 2);
+        assert!(channel_names.contains(&"channel1".to_string()));
+        assert!(channel_names.contains(&"channel2".to_string()));
+    }
+
+    #[rstest]
+    fn test_slack_client_get_channel() {
+        let channel1 = SlackChannel::new("channel1", "api_key1");
+        let channel2 = SlackChannel::new("channel2", "api_key2");
+
+        let client = SlackClient::new(vec![channel1.clone(), channel2.clone()]);
+        let retrieved_channel1 = client.get_channel("channel1").unwrap();
+        let retrieved_channel2 = client.get_channel("channel2").unwrap();
+
+        assert_eq!(retrieved_channel1.api_key(), "api_key1");
+        assert_eq!(retrieved_channel2.api_key(), "api_key2");
+    }
 }
+
 
