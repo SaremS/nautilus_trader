@@ -18,6 +18,7 @@ members = [
   "crates/adapters/interactive_brokers",
   "crates/adapters/okx",
   "crates/adapters/sandbox",
+  "crates/adapters/slack",
   "crates/adapters/tardis",
   "crates/analysis",
   "crates/backtest",

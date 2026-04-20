@@ -6424,6 +6424,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "nautilus-slack"
+version = "0.56.0"
+dependencies = [
+ "nautilus-common",
+ "nautilus-core",
+ "nautilus-live",
+ "nautilus-model",
+ "nautilus-network",
+ "nautilus-serialization",
+ "nautilus-system",
+ "proptest",
+ "rstest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-util",
+ "zeroize",
+]
+
+[[package]]
 name = "nautilus-system"
 version = "0.56.0"
 dependencies = [
