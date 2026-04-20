@@ -5,7 +5,7 @@ use crate::common::Credential;
 
 #[derive(Clone)]
 pub struct SlackClient {
-    workspace_name: String, 
+    base_url: String, 
     channels: AHashSet<String>,
     api_key: Credential,
 }
@@ -13,7 +13,7 @@ pub struct SlackClient {
 impl Debug for SlackClient {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct(stringify!(SlackChannel))
-            .field("workspace_name", &self.workspace_name)
+            .field("base_url", &self.base_url)
             .field("channels", &self.channels)
             .field("api_key", &self.api_key.api_key_masked())
             .finish()
@@ -22,11 +22,11 @@ impl Debug for SlackClient {
 
 impl SlackClient {
     #[must_use]
-    pub fn new(workspace_name: impl Into<String>, channels: AHashSet<String>, api_key: impl Into<String>) -> Self {
-        let workspace_name = workspace_name.into();
+    pub fn new(base_url: impl Into<String>, channels: AHashSet<String>, api_key: impl Into<String>) -> Self {
+        let base_url = base_url.into();
 
         Self {
-            workspace_name,
+            base_url,
             channels,
             api_key: Credential::new(api_key),
         }
@@ -54,7 +54,7 @@ mod tests {
     fn test_slack_client_new() {
         let channels = AHashSet::from_iter(vec!["channel1".to_string(), "channel2".to_string()]);
         let client = SlackClient::new("workspace", channels, "api_key");
-        assert_eq!(client.workspace_name, "workspace".to_string());
+        assert_eq!(client.base_url, "workspace".to_string());
     }
 
     #[rstest]
