@@ -1,20 +1,12 @@
-use std::{
-    collections::HashMap,
-    time::Duration,
-    net::SocketAddr,
-};
+use std::{collections::HashMap, net::SocketAddr, time::Duration};
 
-use axum::{
-    routing::post,
-    Json, Router,
-};
+use axum::{Json, Router, routing::post};
 use rstest::rstest;
 use serde_json::json;
 
-use nautilus_network::http::HttpClient;
 use nautilus_common::testing::wait_until_async;
+use nautilus_network::http::HttpClient;
 use nautilus_slack::client::SlackClient;
-
 
 async fn wait_for_server(addr: SocketAddr, path: &str) {
     let health_url = format!("http://{addr}{path}");
@@ -41,7 +33,7 @@ async fn test_slack_client_send_message() {
                 "ok": true
             }))
         }),
-    );   
+    );
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
