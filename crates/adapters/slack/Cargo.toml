@@ -25,7 +25,6 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-ahash = { workspace = true }
 nautilus-common = { workspace = true, features = ["live"] }
 nautilus-core = { workspace = true }
 nautilus-live = { workspace = true, optional = true }
@@ -35,6 +34,8 @@ nautilus-serialization = { workspace = true, features = [
   "arrow",
 ], optional = true }
 nautilus-system = { workspace = true, optional = true }
+
+anyhow = { workspace = true }
 reqwest.workspace = true
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -44,6 +45,7 @@ url = { workspace = true }
 zeroize = { workspace = true }
 
 [dev-dependencies]
+axum = { workspace = true }
 proptest = { workspace = true }
 rstest = { workspace = true }
 tokio = { workspace = true, features = ["test-util"] }
