@@ -47,7 +47,7 @@ async fn test_slack_client_send_message() {
     wait_for_server(addr, "/api/chat.postMessage").await;
 
     let base_url = format!("http://{addr}");
-    let mut client = SlackClient::new_with_base_url(base_url, "channel_id", "api_key").unwrap();
+    let client = SlackClient::new_with_base_url(base_url, "channel_id", "api_key").unwrap();
 
     let result = client.send_message("Hello, Slack!").await;
 
