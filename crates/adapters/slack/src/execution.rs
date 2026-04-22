@@ -1,6 +1,9 @@
-use std::fmt::Debug;
+use std::{
+    fmt::Debug,
+    sync::Mutex,
+};
 use async_trait::async_trait;
-use nautilus_core::UnixNanos;
+use nautilus_core::{UnixNanos, MUTEX_POISONED};
 use nautilus_common::{
     clients::ExecutionClient,
     messages::execution::{
@@ -8,6 +11,7 @@ use nautilus_common::{
         GenerateOrderStatusReport, GenerateOrderStatusReports, GeneratePositionStatusReports,
         ModifyOrder, QueryAccount, QueryOrder, SubmitOrder, SubmitOrderList,
     },
+    live::get_runtime,
 };
 use nautilus_model::{
     accounts::AccountAny,
@@ -19,27 +23,21 @@ use nautilus_model::{
     reports::{ExecutionMassStatus, FillReport, OrderStatusReport, PositionStatusReport},
     types::{AccountBalance, MarginBalance, Money, Price, Quantity},
 };
+use tokio::task::JoinHandle;
 
 use crate::client::SlackClient;
 
-#[derive(Clone)]
+#[derive(Debug)]
 pub struct SlackExecutionClient {
     slack_client: SlackClient,
 
     client_id: ClientId,
     account_id: AccountId,
     venue: Venue,
+
+    pending_tasks: Mutex<Vec<JoinHandle<()>>>,
 }
 
-impl Debug for SlackExecutionClient {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(stringify!(SlackExecutionClient))
-            .field("client_id", &self.client_id)
-            .field("account_id", &self.account_id)
-            .field("venue", &self.venue)
-            .finish()
-    }
-}
 
 impl SlackExecutionClient {
     #[must_use]
@@ -49,12 +47,15 @@ impl SlackExecutionClient {
         let client_id = ClientId::new("slack_client");
         let account_id = AccountId::new("slack-account");
         let venue = Venue::new("slack");
+
+        let pending_tasks = Mutex::new(Vec::new());
         
         Self {
             slack_client,
             client_id,
             account_id,
             venue,
+            pending_tasks,
         }
     }
 
@@ -63,12 +64,31 @@ impl SlackExecutionClient {
         let account_id = AccountId::new("slack-account");
         let venue = Venue::new("slack");
 
+        let pending_tasks = Mutex::new(Vec::new());
+
         Self {
             slack_client,
             client_id,
             account_id,
             venue,
+            pending_tasks,
         }
+    }
+
+    fn spawn_task<F>(&self, description: &'static str, fut: F)
+    where
+        F: Future<Output = anyhow::Result<()>> + Send + 'static,
+    {
+        let runtime = get_runtime();
+        let handle = runtime.spawn(async move {
+            if let Err(e) = fut.await {
+                log::warn!("{description} failed: {e}");
+            }
+        });
+
+        let mut tasks = self.pending_tasks.lock().expect(MUTEX_POISONED);
+        tasks.retain(|handle| !handle.is_finished());
+        tasks.push(handle);
     }
 }
 
@@ -117,29 +137,14 @@ impl ExecutionClient for SlackExecutionClient {
         Ok(())
     }
 
-    /// Connects the client to the execution venue.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if connection fails.
     async fn connect(&mut self) -> anyhow::Result<()> {
-        Ok(())
+        return self.slack_client.test_api().await;
     }
 
-    /// Disconnects the client from the execution venue.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if disconnection fails.
     async fn disconnect(&mut self) -> anyhow::Result<()> {
         Ok(())
     }
 
-    /// Submits a single order command to the execution venue.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if submission fails.
     fn submit_order(&self, _cmd: SubmitOrder) -> anyhow::Result<()> {
         Ok(())
     }
@@ -150,6 +155,13 @@ impl ExecutionClient for SlackExecutionClient {
     ///
     /// Returns an error if submission fails.
     fn submit_order_list(&self, _cmd: SubmitOrderList) -> anyhow::Result<()> {
+        let slack_client = self.slack_client.clone();
+        let order_list_json = serde_json::to_string(&_cmd).unwrap_or_else(|_| "Failed to serialize SubmitOrderList".to_string());
+
+        self.spawn_task("submit_order_list", async move {
+            slack_client.send_message(format!("{order_list_json}")).await
+        });
+
         Ok(())
     }
 
