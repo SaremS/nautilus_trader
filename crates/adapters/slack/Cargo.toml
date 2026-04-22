@@ -20,6 +20,21 @@ workspace = true
 name = "nautilus_slack"
 crate-type = ["rlib", "cdylib"]
 
+[features]
+python = [
+  "nautilus-common/python",
+  "nautilus-core/python",
+  "nautilus-model/python",
+  "nautilus-network/python",
+  "pyo3",
+  "pyo3-async-runtimes",
+  "pyo3-stub-gen",
+]
+extension-module = [
+  "python",
+  "pyo3/extension-module",
+]
+
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
@@ -44,6 +59,10 @@ tokio = { workspace = true }
 tokio-util = { workspace = true }
 url = { workspace = true }
 zeroize = { workspace = true }
+
+pyo3 = { workspace = true, optional = true }
+pyo3-async-runtimes = { workspace = true, optional = true }
+pyo3-stub-gen = { workspace = true, optional = true }
 
 [dev-dependencies]
 axum = { workspace = true }

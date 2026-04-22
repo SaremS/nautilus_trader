@@ -34,11 +34,3 @@ pub mod client;
 #[cfg(feature = "python")]
 pub mod python;
 
-#[cfg(feature = "live")]
-pub mod data;
-
-#[cfg(feature = "live")]
-pub mod factories;
-
-#[cfg(feature = "live")]
-pub mod live;
