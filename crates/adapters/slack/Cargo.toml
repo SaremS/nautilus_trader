@@ -36,6 +36,7 @@ nautilus-serialization = { workspace = true, features = [
 nautilus-system = { workspace = true, optional = true }
 
 anyhow = { workspace = true }
+async-trait = { workspace = true }
 reqwest.workspace = true
 serde = { workspace = true }
 serde_json = { workspace = true }

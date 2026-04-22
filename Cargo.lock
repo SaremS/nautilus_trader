@@ -6428,6 +6428,7 @@ name = "nautilus-slack"
 version = "0.56.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "axum",
  "nautilus-common",
  "nautilus-core",

@@ -1,7 +1,9 @@
+use async_trait::async_trait;
 use std::fmt::Debug;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use url::Url;
+use nautilus_core::UnixNanos;
 use nautilus_common::{
     clients::ExecutionClient,
     live::{get_runtime, runner::get_exec_event_sender},
@@ -76,7 +78,7 @@ impl SlackClient {
         let channel_id = channel_id.into();
 
         let client_id = ClientId::new("slack_client");
-        let account_id = AccountId::new("slack_account");
+        let account_id = AccountId::new("slack-account");
         let venue = Venue::new("slack");
 
         Ok(Self {
@@ -131,22 +133,28 @@ impl SlackClient {
 
 }
 
+#[async_trait(?Send)]
 impl ExecutionClient for SlackClient {
     fn is_connected(&self) -> bool {
         true
     }
+
     fn client_id(&self) -> ClientId {
         self.client_id
     }
+
     fn account_id(&self) -> AccountId {
         self.account_id
     }
+
     fn venue(&self) -> Venue {
        	self.venue 
     }
+
     fn oms_type(&self) -> OmsType {
         OmsType::Unspecified
     }
+
     fn get_account(&self) -> Option<AccountAny> {
         None
     }
