@@ -15,12 +15,8 @@ use nautilus_common::{
 use nautilus_model::{
     accounts::AccountAny,
     enums::{LiquiditySide, OmsType},
-    events::{
-        OrderAccepted, OrderCancelRejected, OrderCanceled, OrderEventAny, OrderExpired,
-        OrderFilled, OrderRejected, OrderUpdated,
-    },
     identifiers::{
-        AccountId, ClientId, ClientOrderId, InstrumentId, StrategyId, TradeId, Venue, VenueOrderId,
+        AccountId, ClientId, ClientOrderId, InstrumentId, StrategyId, Venue, VenueOrderId,
     },
     instruments::{Instrument, InstrumentAny},
     orders::Order,
@@ -165,10 +161,10 @@ impl ExecutionClient for SlackClient {
     /// Returns an error if generating the account state fails.
     fn generate_account_state(
         &self,
-        balances: Vec<AccountBalance>,
-        margins: Vec<MarginBalance>,
-        reported: bool,
-        ts_event: UnixNanos,
+        _balances: Vec<AccountBalance>,
+        _margins: Vec<MarginBalance>,
+        _reported: bool,
+        _ts_event: UnixNanos,
     ) -> anyhow::Result<()> {
         Ok(())
     }
@@ -214,7 +210,7 @@ impl ExecutionClient for SlackClient {
     /// # Errors
     ///
     /// Returns an error if submission fails.
-    fn submit_order(&self, cmd: SubmitOrder) -> anyhow::Result<()> {
+    fn submit_order(&self, _cmd: SubmitOrder) -> anyhow::Result<()> {
         Ok(())
     }
 
@@ -223,7 +219,7 @@ impl ExecutionClient for SlackClient {
     /// # Errors
     ///
     /// Returns an error if submission fails.
-    fn submit_order_list(&self, cmd: SubmitOrderList) -> anyhow::Result<()> {
+    fn submit_order_list(&self, _cmd: SubmitOrderList) -> anyhow::Result<()> {
         Ok(())
     }
 
@@ -232,7 +228,7 @@ impl ExecutionClient for SlackClient {
     /// # Errors
     ///
     /// Returns an error if modification fails.
-    fn modify_order(&self, cmd: ModifyOrder) -> anyhow::Result<()> {
+    fn modify_order(&self, _cmd: ModifyOrder) -> anyhow::Result<()> {
         Ok(())
     }
 
@@ -241,7 +237,7 @@ impl ExecutionClient for SlackClient {
     /// # Errors
     ///
     /// Returns an error if cancellation fails.
-    fn cancel_order(&self, cmd: CancelOrder) -> anyhow::Result<()> {
+    fn cancel_order(&self, _cmd: CancelOrder) -> anyhow::Result<()> {
         Ok(())
     }
 
@@ -250,7 +246,7 @@ impl ExecutionClient for SlackClient {
     /// # Errors
     ///
     /// Returns an error if cancellation fails.
-    fn cancel_all_orders(&self, cmd: CancelAllOrders) -> anyhow::Result<()> {
+    fn cancel_all_orders(&self, _cmd: CancelAllOrders) -> anyhow::Result<()> {
         Ok(())
     }
 
@@ -259,7 +255,7 @@ impl ExecutionClient for SlackClient {
     /// # Errors
     ///
     /// Returns an error if batch cancellation fails.
-    fn batch_cancel_orders(&self, cmd: BatchCancelOrders) -> anyhow::Result<()> {
+    fn batch_cancel_orders(&self, _cmd: BatchCancelOrders) -> anyhow::Result<()> {
         Ok(())
     }
 
@@ -268,7 +264,7 @@ impl ExecutionClient for SlackClient {
     /// # Errors
     ///
     /// Returns an error if the query fails.
-    fn query_account(&self, cmd: QueryAccount) -> anyhow::Result<()> {
+    fn query_account(&self, _cmd: QueryAccount) -> anyhow::Result<()> {
         Ok(())
     }
 
@@ -277,7 +273,7 @@ impl ExecutionClient for SlackClient {
     /// # Errors
     ///
     /// Returns an error if the query fails.
-    fn query_order(&self, cmd: QueryOrder) -> anyhow::Result<()> {
+    fn query_order(&self, _cmd: QueryOrder) -> anyhow::Result<()> {
         Ok(())
     }
 
@@ -288,7 +284,7 @@ impl ExecutionClient for SlackClient {
     /// Returns an error if report generation fails.
     async fn generate_order_status_report(
         &self,
-        cmd: &GenerateOrderStatusReport,
+        _cmd: &GenerateOrderStatusReport,
     ) -> anyhow::Result<Option<OrderStatusReport>> {
         Ok(None)
     }
@@ -300,7 +296,7 @@ impl ExecutionClient for SlackClient {
     /// Returns an error if report generation fails.
     async fn generate_order_status_reports(
         &self,
-        cmd: &GenerateOrderStatusReports,
+        _cmd: &GenerateOrderStatusReports,
     ) -> anyhow::Result<Vec<OrderStatusReport>> {
         Ok(Vec::new())
     }
@@ -312,7 +308,7 @@ impl ExecutionClient for SlackClient {
     /// Returns an error if fill report generation fails.
     async fn generate_fill_reports(
         &self,
-        cmd: GenerateFillReports,
+        _cmd: GenerateFillReports,
     ) -> anyhow::Result<Vec<FillReport>> {
         Ok(Vec::new())
     }
@@ -324,7 +320,7 @@ impl ExecutionClient for SlackClient {
     /// Returns an error if generation fails.
     async fn generate_position_status_reports(
         &self,
-        cmd: &GeneratePositionStatusReports,
+        _cmd: &GeneratePositionStatusReports,
     ) -> anyhow::Result<Vec<PositionStatusReport>> {
         Ok(Vec::new())
     }
@@ -336,7 +332,7 @@ impl ExecutionClient for SlackClient {
     /// Returns an error if status generation fails.
     async fn generate_mass_status(
         &self,
-        lookback_mins: Option<u64>,
+        _lookback_mins: Option<u64>,
     ) -> anyhow::Result<Option<ExecutionMassStatus>> {
         Ok(None)
     }
