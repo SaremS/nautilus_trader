@@ -6,7 +6,6 @@ use url::Url;
 use nautilus_core::UnixNanos;
 use nautilus_common::{
     clients::ExecutionClient,
-    live::{get_runtime, runner::get_exec_event_sender},
     messages::execution::{
         BatchCancelOrders, CancelAllOrders, CancelOrder, GenerateFillReports,
         GenerateOrderStatusReport, GenerateOrderStatusReports, GeneratePositionStatusReports,
@@ -15,7 +14,7 @@ use nautilus_common::{
 };
 use nautilus_model::{
     accounts::AccountAny,
-    enums::{AccountType, LiquiditySide, OmsType, OrderSide, OrderStatus, OrderType, TimeInForce},
+    enums::{LiquiditySide, OmsType},
     events::{
         OrderAccepted, OrderCancelRejected, OrderCanceled, OrderEventAny, OrderExpired,
         OrderFilled, OrderRejected, OrderUpdated,
