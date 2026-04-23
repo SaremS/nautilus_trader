@@ -24,6 +24,7 @@ use nautilus_model::{
     types::{AccountBalance, MarginBalance, Money, Price, Quantity},
 };
 use tokio::task::JoinHandle;
+use serde::Serialize;
 
 use crate::client::SlackClient;
 
@@ -90,6 +91,19 @@ impl SlackExecutionClient {
         tasks.retain(|handle| !handle.is_finished());
         tasks.push(handle);
     }
+
+    fn send_slack_message_from_serializable(&self, serializable: impl Serialize, task_description: &'static str) -> anyhow::Result<()> {
+        let slack_client = self.slack_client.clone();
+        let message_json = serde_json::to_string(&serializable).unwrap_or_else(|_| "Failed to serialize message".to_string());
+
+        let full_message = format!("*{task_description}*:\n```json\n{message_json}\n```");
+
+        self.spawn_task(task_description, async move {
+            slack_client.send_message(full_message).await
+        });
+
+        Ok(())
+    }
 }
 
 
@@ -149,74 +163,32 @@ impl ExecutionClient for SlackExecutionClient {
         Ok(())
     }
 
-    /// Submits a list of orders to the execution venue.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if submission fails.
     fn submit_order_list(&self, _cmd: SubmitOrderList) -> anyhow::Result<()> {
-        let slack_client = self.slack_client.clone();
-        let order_list_json = serde_json::to_string(&_cmd).unwrap_or_else(|_| "Failed to serialize SubmitOrderList".to_string());
-
-        self.spawn_task("submit_order_list", async move {
-            slack_client.send_message(format!("{order_list_json}")).await
-        });
-
-        Ok(())
+        self.send_slack_message_from_serializable(_cmd, "SubmitOrderList")
     }
 
-    /// Modifies an existing order.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if modification fails.
     fn modify_order(&self, _cmd: ModifyOrder) -> anyhow::Result<()> {
-        Ok(())
+        self.send_slack_message_from_serializable(_cmd, "ModifyOrder") 
     }
 
-    /// Cancels a specific order.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if cancellation fails.
     fn cancel_order(&self, _cmd: CancelOrder) -> anyhow::Result<()> {
-        Ok(())
+        self.send_slack_message_from_serializable(_cmd, "CancelOrder") 
     }
 
-    /// Cancels all orders.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if cancellation fails.
     fn cancel_all_orders(&self, _cmd: CancelAllOrders) -> anyhow::Result<()> {
-        Ok(())
+        self.send_slack_message_from_serializable(_cmd, "CancelAllOrders") 
     }
 
-    /// Cancels a batch of orders.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if batch cancellation fails.
     fn batch_cancel_orders(&self, _cmd: BatchCancelOrders) -> anyhow::Result<()> {
-        Ok(())
+        self.send_slack_message_from_serializable(_cmd, "BatchCancelOrders") 
     }
 
-    /// Queries the status of an account.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the query fails.
     fn query_account(&self, _cmd: QueryAccount) -> anyhow::Result<()> {
-        Ok(())
+        self.send_slack_message_from_serializable(_cmd, "QueryAccount") 
     }
 
-    /// Queries the status of an order.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the query fails.
     fn query_order(&self, _cmd: QueryOrder) -> anyhow::Result<()> {
-        Ok(())
+        self.send_slack_message_from_serializable(_cmd, "QueryOrder") 
     }
 
     /// Generates a single order status report.
