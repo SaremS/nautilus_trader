@@ -2,7 +2,6 @@ use std::fmt::Debug;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use url::Url;
-use nautilus_core::UnixNanos;
 
 use crate::common::Credential;
 

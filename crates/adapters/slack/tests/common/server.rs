@@ -1,14 +1,13 @@
 use std::sync::{
-    Arc, 
-    atomic::{AtomicUsize, Ordering}
+    Arc,
+    atomic::{AtomicUsize, Ordering},
 };
 
 use axum::{
-    routing::{get, post},
     Json, Router,
     extract::State,
+    routing::{get, post},
 };
-
 
 #[derive(Clone)]
 pub struct TestServerState {
@@ -27,7 +26,7 @@ impl Default for TestServerState {
 
 impl TestServerState {
     pub async fn reset(&self) {
-        let mut count = self.connection_count.store(0, Ordering::Relaxed);
+        let _count = self.connection_count.store(0, Ordering::Relaxed);
 
         let mut messages = self.messages_received.lock().await;
         messages.clear();
@@ -45,7 +44,7 @@ impl TestServerState {
 
 async fn handle_api_post_message(
     State(state): State<TestServerState>,
-    Json(payload): Json<serde_json::Value>
+    Json(payload): Json<serde_json::Value>,
 ) -> Json<serde_json::Value> {
     state.increment_connection_count().await;
     if let Some(text) = payload.get("text").and_then(|v| v.as_str()) {
@@ -56,9 +55,7 @@ async fn handle_api_post_message(
     }))
 }
 
-async fn handle_api_test(
-    State(state): State<TestServerState>
-) -> Json<serde_json::Value> {
+async fn handle_api_test(State(state): State<TestServerState>) -> Json<serde_json::Value> {
     state.increment_connection_count().await;
 
     Json(serde_json::json!({
