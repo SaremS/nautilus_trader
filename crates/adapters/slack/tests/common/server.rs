@@ -1,13 +1,17 @@
-use std::sync::{
-    Arc,
-    atomic::{AtomicUsize, Ordering},
+#![allow(dead_code)]
+
+use std::{
+    net::SocketAddr,
+    sync::{
+        Arc,
+        atomic::{AtomicUsize, Ordering},
+    },
+    time::Duration,
 };
 
-use axum::{
-    Json, Router,
-    extract::State,
-    routing::{get, post},
-};
+use axum::{Json, Router, extract::State, routing::post};
+
+use nautilus_common::testing::wait_until_async;
 
 #[derive(Clone)]
 pub struct TestServerState {
@@ -63,9 +67,29 @@ async fn handle_api_test(State(state): State<TestServerState>) -> Json<serde_jso
     }))
 }
 
-fn create_test_router(State(state): State<TestServerState>) -> axum::Router {
+fn create_test_router(state: TestServerState) -> axum::Router {
     Router::new()
         .route("/api/chat.postMessage", post(handle_api_post_message))
-        .route("/api/api.test", get(handle_api_test))
+        .route("/api/api.test", post(handle_api_test))
         .with_state(state)
+}
+
+pub async fn start_test_server()
+-> Result<(SocketAddr, TestServerState), Box<dyn std::error::Error + Send + Sync>> {
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await?;
+    let addr = listener.local_addr()?;
+    let state = TestServerState::default();
+    let router = create_test_router(state.clone());
+
+    tokio::spawn(async move {
+        axum::serve(listener, router).await.unwrap();
+    });
+
+    wait_until_async(
+        || async { tokio::net::TcpStream::connect(addr).await.is_ok() },
+        Duration::from_secs(5),
+    )
+    .await;
+
+    Ok((addr, state))
 }

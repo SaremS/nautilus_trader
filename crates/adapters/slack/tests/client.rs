@@ -53,3 +53,32 @@ async fn test_slack_client_send_message() {
 
     assert!(result.is_ok());
 }
+
+#[rstest]
+#[tokio::test]
+async fn test_slack_client_test_api() {
+    let router = Router::new().route(
+        "/api/api.test",
+        post(|| async {
+            Json(json!({
+                "ok": true
+            }))
+        }),
+    );
+
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = listener.local_addr().unwrap();
+
+    tokio::spawn(async move {
+        axum::serve(listener, router.into_make_service())
+            .await
+            .unwrap();
+    });
+
+    let base_url = format!("http://{addr}");
+    let client = SlackClient::new_with_base_url(base_url, "channel_id", "api_key").unwrap();
+
+    let result = client.test_api().await;
+
+    assert!(result.is_ok());
+}

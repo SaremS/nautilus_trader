@@ -32,11 +32,13 @@ use crate::client::SlackClient;
 pub struct SlackExecutionClient {
     slack_client: SlackClient,
 
+    is_connected: bool,
     client_id: ClientId,
     account_id: AccountId,
     venue: Venue,
 
     pending_tasks: Mutex<Vec<JoinHandle<()>>>,
+
 }
 
 
@@ -45,6 +47,7 @@ impl SlackExecutionClient {
     pub fn new(channel_id: impl Into<String>, api_key: impl Into<String>) -> Self {
         let slack_client = SlackClient::new(channel_id, api_key);
 
+        let is_connected = false;
         let client_id = ClientId::new("slack_client");
         let account_id = AccountId::new("slack-account");
         let venue = Venue::new("slack");
@@ -53,6 +56,7 @@ impl SlackExecutionClient {
         
         Self {
             slack_client,
+            is_connected,
             client_id,
             account_id,
             venue,
@@ -61,6 +65,7 @@ impl SlackExecutionClient {
     }
 
     pub fn new_from_slack_client(slack_client: SlackClient) -> Self {
+        let is_connected = false;
         let client_id = ClientId::new("slack_client");
         let account_id = AccountId::new("slack-account");
         let venue = Venue::new("slack");
@@ -69,6 +74,7 @@ impl SlackExecutionClient {
 
         Self {
             slack_client,
+            is_connected,
             client_id,
             account_id,
             venue,
@@ -110,7 +116,7 @@ impl SlackExecutionClient {
 #[async_trait(?Send)]
 impl ExecutionClient for SlackExecutionClient {
     fn is_connected(&self) -> bool {
-        true
+        self.is_connected
     }
 
     fn client_id(&self) -> ClientId {
@@ -152,10 +158,17 @@ impl ExecutionClient for SlackExecutionClient {
     }
 
     async fn connect(&mut self) -> anyhow::Result<()> {
-        return self.slack_client.test_api().await;
+        let connection_successful =  self.slack_client.test_api().await;
+        if connection_successful.is_ok() {
+            self.is_connected = true;
+            Ok(())
+        } else {
+            anyhow::bail!("Failed to connect to Slack API: {:?}", connection_successful.err());
+        }
     }
 
     async fn disconnect(&mut self) -> anyhow::Result<()> {
+        self.is_connected = false;
         Ok(())
     }
 
@@ -191,11 +204,6 @@ impl ExecutionClient for SlackExecutionClient {
         self.send_slack_message_from_serializable(_cmd, "QueryOrder") 
     }
 
-    /// Generates a single order status report.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if report generation fails.
     async fn generate_order_status_report(
         &self,
         _cmd: &GenerateOrderStatusReport,
@@ -203,11 +211,6 @@ impl ExecutionClient for SlackExecutionClient {
         Ok(None)
     }
 
-    /// Generates multiple order status reports.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if report generation fails.
     async fn generate_order_status_reports(
         &self,
         _cmd: &GenerateOrderStatusReports,
@@ -215,11 +218,6 @@ impl ExecutionClient for SlackExecutionClient {
         Ok(Vec::new())
     }
 
-    /// Generates fill reports based on execution results.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if fill report generation fails.
     async fn generate_fill_reports(
         &self,
         _cmd: GenerateFillReports,
@@ -227,11 +225,6 @@ impl ExecutionClient for SlackExecutionClient {
         Ok(Vec::new())
     }
 
-    /// Generates position status reports.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if generation fails.
     async fn generate_position_status_reports(
         &self,
         _cmd: &GeneratePositionStatusReports,
@@ -239,11 +232,6 @@ impl ExecutionClient for SlackExecutionClient {
         Ok(Vec::new())
     }
 
-    /// Generates mass status for executions.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if status generation fails.
     async fn generate_mass_status(
         &self,
         _lookback_mins: Option<u64>,
@@ -251,10 +239,6 @@ impl ExecutionClient for SlackExecutionClient {
         Ok(None)
     }
 
-    /// Registers an external order for tracking by the execution client.
-    ///
-    /// This is called after reconciliation creates an external order, allowing the
-    /// execution client to track it for subsequent events (e.g., cancellations).
     fn register_external_order(
         &self,
         _client_order_id: ClientOrderId,
@@ -266,21 +250,10 @@ impl ExecutionClient for SlackExecutionClient {
         // Default no-op implementation
     }
 
-    /// Handles an instrument update received via the message bus.
-    ///
-    /// Exec clients that need live instrument updates (e.g. for internal maps)
-    /// can override this to process instruments for their venue.
     fn on_instrument(&mut self, _instrument: InstrumentAny) {
         // Default no-op
     }
 
-    /// Calculates the commission for a reconciliation fill.
-    ///
-    /// Override this method to provide venue-specific commission logic
-    /// for inferred fills generated during reconciliation.
-    ///
-    /// Returns `None` by default, signaling callers to use their own
-    /// generic commission formula.
     #[expect(unused_variables)]
     fn calculate_commission(
         &self,
