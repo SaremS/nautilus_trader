@@ -1,21 +1,15 @@
 mod common;
 
-use std::{
-    net::SocketAddr,
-    sync::atomic::Ordering
-};
+use std::{net::SocketAddr, sync::atomic::Ordering};
 
 use nautilus_core::{UUID4, UnixNanos};
 
-use nautilus_common::{
-    clients::ExecutionClient,
-    messages::execution::SubmitOrder,
-};
+use nautilus_common::{clients::ExecutionClient, messages::execution::SubmitOrder};
 use nautilus_model::{
-    identifiers::{AccountId, ClientId, Venue, TraderId, ClientOrderId, StrategyId, InstrumentId},
-    orders::{LimitOrder, OrderAny},
     enums::{OrderSide, TimeInForce},
-    types::{Price, Quantity}
+    identifiers::{AccountId, ClientId, ClientOrderId, InstrumentId, StrategyId, TraderId, Venue},
+    orders::{LimitOrder, OrderAny},
+    types::{Price, Quantity},
 };
 use nautilus_slack::{client::SlackClient, execution::SlackExecutionClient};
 
