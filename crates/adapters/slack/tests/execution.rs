@@ -59,7 +59,7 @@ async fn test_exec_client_connect_disconnect() {
 #[tokio::test]
 async fn test_exec_client_send_message() {
     let (addr, state) = start_test_server().await.unwrap();
-    let mut exec_client = create_test_execution_client(addr);
+    let exec_client = create_test_execution_client(addr);
 
     let trader_id = TraderId::from("TESTER-001");
     let instrument_id = InstrumentId::from("BTC-USD.Test");
@@ -94,7 +94,7 @@ async fn test_exec_client_send_message() {
         UnixNanos::default(),
     );
 
-    let mut order_any: OrderAny = order.into();
+    let order_any: OrderAny = order.into();
     let submit_order = SubmitOrder::from_order(
         &order_any,
         trader_id,
@@ -104,7 +104,7 @@ async fn test_exec_client_send_message() {
         UnixNanos::default(),
     );
 
-    let result = exec_client.submit_order(submit_order).unwrap();
+    let _result = exec_client.submit_order(submit_order).unwrap();
 
     tokio::time::sleep(std::time::Duration::from_millis(500)).await;
     let messages = state.messages_received.lock().await;
