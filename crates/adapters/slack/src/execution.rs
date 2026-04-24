@@ -173,7 +173,7 @@ impl ExecutionClient for SlackExecutionClient {
     }
 
     fn submit_order(&self, _cmd: SubmitOrder) -> anyhow::Result<()> {
-        Ok(())
+        self.send_slack_message_from_serializable(_cmd, "SubmitOrder")
     }
 
     fn submit_order_list(&self, _cmd: SubmitOrderList) -> anyhow::Result<()> {
